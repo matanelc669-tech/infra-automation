@@ -1,6 +1,6 @@
 [
     {
-        "name": "Machine name: web-server",
+        "name": "web-app",
         "os": "Ubuntu",
         "cpu": "2vCPU",
         "ram": "4GB"
