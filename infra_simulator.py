@@ -2,9 +2,11 @@ import json
 import os
 import subprocess
 from src.machine import Machine
+from src.logger import logger
 
 def get_user_input():
     machines = []
+    logger.info("=== DevOps Infrastructure Provisioning Simulator Started ===")
     print("=== DevOps Infrastructure Provisioning Simulator ===")
     while True:
         name = input("Enter machine name (or 'done' to finish): ")
@@ -21,37 +23,36 @@ def get_user_input():
     return machines
 
 def trigger_bash_deployment():
+    logger.info("Triggering automated service deployment script...")
     print("\n[INFO] Triggering automated service deployment script...")
     try:
         result = subprocess.run(["./scripts/deploy_service.sh"], check=True, text=True, capture_output=True)
         print(result.stdout)
+        logger.info("Bash deployment completed successfully.")
         print("[INFO] Bash deployment completed successfully.")
     except subprocess.CalledProcessError as e:
-        print(f"[ERROR] Deployment script failed: {e}")
-
-def verify_configuration_file(filepath):
-    print(f"\n[INFO] Verifying existence of configuration file: {filepath}")
-    if os.path.exists(filepath):
-        size = os.path.getsize(filepath)
-        print(f"[SUCCESS] File verified! Path: {filepath}, Size: {size} bytes.")
-    else:
-        print(f"[WARNING] Configuration file not found at {filepath}.")
+        error_msg = f"Deployment script failed: {e}"
+        logger.error(error_msg)
+        print(f"[ERROR] {error_msg}")
 
 def main():
     instances = get_user_input()
     
     if instances:
+        os.makedirs("configs", exist_ok=True)
         config_path = "configs/instances.json"
         with open(config_path, "w") as f:
             json.dump(instances, f, indent=4)
-        print(f"[INFO] Configurations successfully saved to {config_path}")
         
-        # Run our new verification step
-        verify_configuration_file(config_path)
+        success_msg = f"Configurations successfully saved to {config_path}"
+        logger.info(success_msg)
+        print(f"[INFO] {success_msg}")
         
         # Execute bash automation script
         trigger_bash_deployment()
+        logger.info("=== Provisioning Process Completed Successfully ===")
     else:
+        logger.warning("No machines were added by the user.")
         print("[INFO] No machines were added.")
 
 if __name__ == "__main__":
